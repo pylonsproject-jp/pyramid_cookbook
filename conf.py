@@ -112,8 +112,15 @@ if 'sphinx-build' in ' '.join(sys.argv): # protect against dumb importers
 # Add and use Pylons theme
 sys.path.append(os.path.abspath('_themes'))
 html_theme_path = ['_themes']
-html_theme = 'pyramid'
-html_theme_options = dict(github_url='https://github.com/Pylons/pyramid_cookbook')
+html_theme = 'doc-ja'
+html_theme_options = dict(
+    original_url='http://docs.pylonsproject.org/projects/pyramid_cookbook/en/latest/',
+    our_github_url='https://github.com/pylonsproject-jp/pyramid_cookbook',
+    in_progress=False,
+    )
+# html_theme_options = dict(
+#     github_url='https://github.com/Pylons/pyramid_cookbook',
+#     )
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -129,7 +136,7 @@ html_theme_options = dict(github_url='https://github.com/Pylons/pyramid_cookbook
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = 'The Pyramid Cookbook v%s' % release
+html_title = u'The Pyramid Cookbook v%s (翻訳)' % release
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
