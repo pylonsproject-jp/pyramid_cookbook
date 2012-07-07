@@ -112,7 +112,7 @@ if 'sphinx-build' in ' '.join(sys.argv): # protect against dumb importers
 # Add and use Pylons theme
 sys.path.append(os.path.abspath('_themes'))
 html_theme_path = ['_themes']
-html_theme = 'doc-ja'
+html_theme = 'pyramid-ja'
 html_theme_options = dict(
     original_url='http://docs.pylonsproject.org/projects/pyramid_cookbook/en/latest/',
     our_github_url='https://github.com/pylonsproject-jp/pyramid_cookbook',
