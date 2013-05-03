@@ -18,14 +18,9 @@ First add the MongoDB URI to your ``development.ini`` file. (Note: ``user``, ``p
     mongo_uri = mongodb://user:password@host:port/database
 
 Then in your ``__init__.py``, set things up such that the database is
-attached to each new request:
-
-.. code-block:: python
-   :linenos:
+attached to each new request::
 
    from pyramid.config import Configurator
-   from pyramid.events import subscriber
-   from pyramid.events import NewRequest
 
    from gridfs import GridFS
    from urlparse import urlparse
@@ -39,30 +34,36 @@ attached to each new request:
       config.add_static_view('static', 'static', cache_max_age=3600)
 
       db_url = urlparse(settings['mongo_uri'])
-      conn = pymongo.Connection(host=db_url.hostname,
-                                port=db_url.port)
-      config.registry.settings['db_conn'] = conn
+      config.registry.db = pymongo.Connection(
+          host=db_url.hostname,
+          port=db_url.port,
+      )
 
-      def add_mongo_db(event):
-          settings = event.request.registry.settings
-          db = settings['db_conn'][db_url.path[1:]]
+      def add_db(request):
+          db = config.registry.db[db_url.path[1:]]
           if db_url.username and db_url.password:
               db.authenticate(db_url.username, db_url.password)
-          event.request.db = db
-          event.request.fs = GridFS(db)
+          return db
 
-      config.add_subscriber(add_mongo_db, NewRequest)
+      def add_fs(request):
+          return GridFS(request.db)
+
+      config.add_request_method(add_db, 'db', reify=True)
+      config.add_request_method(add_fs, 'fs', reify=True)
 
       config.add_route('dashboard', '/')
       # other routes and more config...
       config.scan()
       return config.make_wsgi_app()
 
-At this point, in view code, you can use request.db as the PyMongo database
-connection.  For example:
 
-.. code-block:: python
-   :linenos:
+.. note::
+
+   ``Configurator.add_request_method`` has been available since Pyramid 1.4.
+   You can use ``Configurator.set_request_property`` for Pyramid 1.3.
+
+At this point, in view code, you can use ``request.db`` as the PyMongo database
+connection.  For example::
 
     @view_config(route_name='dashboard',
                  renderer="myapp:templates/dashboard.pt")

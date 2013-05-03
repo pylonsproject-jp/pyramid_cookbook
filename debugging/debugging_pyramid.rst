@@ -1,34 +1,3 @@
-Debugging
-=========
-
-Using PDB to Debug Your Application
-+++++++++++++++++++++++++++++++++++
-
-``pdb`` is an interactive tool that comes with Python, which allows you to
-break your program at an arbitrary point, examine values, and step through
-code.  It's often much more useful than print statements or logging
-statements to examine program state.  You can place a ``pdb.set_trace()``
-statement in your Pyramid application at a place where you'd like to examine
-program state.  When you issue a request to the application, and that point
-in your code is reached, you will be dropped into the ``pdb`` debugging
-console within the terminal that you used to start your application.
-
-There are lots of great resources that can help you learn PDB.
-
-- Doug Hellmann's PyMOTW blog entry entitled "pdb - Interactive Debugger" at
-  http://blog.doughellmann.com/2010/09/pymotw-pdb-interactive-debugger.html
-  is the canonical text resource to learning PDB.
-
-- The PyCon video presentation by Chris McDonough entitled "Introduction to
-  PDB" at http://pyvideo.org/video/644/introduction-to-pdb is a good place to
-  start learning PDB.
-
-- The video at http://marakana.com/forums/python/python/423.html shows you
-  how to start how to start to using pdb.  The video describes using ``pdb``
-  in a command-line program.
-
-Below is a debugging scenario using PDB to debug Pyramid.
-
 Debugging Pyramid
 +++++++++++++++++
 
@@ -88,9 +57,7 @@ Huh?
 
 - Let's drop a pdb statement into our root factory object's ``__getitem__``
   method and have a look.  Edit the project's ``models.py`` and add the
-  aforementioned ``pdb`` line in ``MyModel.__getitem__``
-
-  .. code-block:: python
+  aforementioned ``pdb`` line in ``MyModel.__getitem__``::
 
     def __getitem__(self, key):
         import pdb; pdb.set_trace()
@@ -106,17 +73,13 @@ Huh?
 
 - For a very simple case, attempt to insert a missing key by default.  Set
   item to a valid new MyModel in ``MyRoot.__getitem__`` if a match isn't
-  found in the database
-
-  .. code-block:: python
+  found in the database::
 
         item = session.query(MyModel).get(id)
         if item is None:
             item = MyModel(name='test %d'%id, value=str(id))  # naive insertion
 
-- Move the break-point within the if clause to avoid the false positive hits
-
-  .. code-block:: python
+- Move the break-point within the if clause to avoid the false positive hits::
 
         if item is None:
             import pdb; pdb.set_trace()
@@ -126,9 +89,7 @@ Huh?
   new MyModel instances.  That's not right!
 
 - Ah, of course, we forgot to add the new item to the session.  Another line
-  added to our ``__getitem__`` method
-
-  .. code-block:: python
+  added to our ``__getitem__`` method::
 
         if item is None:
             import pdb; pdb.set_trace()
@@ -140,9 +101,7 @@ Huh?
 
     (pdb) session.query(MyModel).get(id)
 
-- Finally, we realize the item.id needs to be set as well before adding
-
-  .. code-block:: python
+- Finally, we realize the item.id needs to be set as well before adding::
 
         if item is None:
             item = MyModel(name='test %d'%id, value=str(id))
@@ -152,3 +111,15 @@ Huh?
 - Many great resources can be found describing the details of using
   pdb.  Try the interactive ``help`` (hit 'h') or a search engine near
   you.
+
+.. note:: There is a well known bug in ``PDB`` in UNIX, when user cannot 
+  see what he is typing in terminal window after any interruption during 
+  ``PDB`` session (it can be caused by ``CTRL-C`` or when the server restarts 
+  automatically). This can be fixed by launching any of this commands in broken 
+  terminal: ``reset``, ``stty sane``. Also one can add one of this commands into
+  ``~/.pdbrc`` file, so they will be launched before ``PDB`` session::
+
+          from subprocess import Popen
+          Popen(["stty", "sane"])
+
+

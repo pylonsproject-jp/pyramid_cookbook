@@ -1,10 +1,7 @@
 Basic Authentication Policy
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Here's an implementation of an HTTP basic auth Pyramid authentication policy:
-
-.. code-block:: python
-   :linenos:
+Here's an implementation of an HTTP basic auth Pyramid authentication policy::
 
    import binascii
 
@@ -13,7 +10,6 @@ Here's an implementation of an HTTP basic auth Pyramid authentication policy:
    from paste.httpheaders import AUTHORIZATION
    from paste.httpheaders import WWW_AUTHENTICATE
 
-   from pyramid.interfaces import IAuthenticationPolicy
    from pyramid.security import Everyone
    from pyramid.security import Authenticated
 
@@ -54,7 +50,6 @@ Here's an implementation of an HTTP basic auth Pyramid authentication policy:
            Default: ``Realm``.  The Basic Auth realm string.
 
        """
-       implements(IAuthenticationPolicy)
 
        def __init__(self, check, realm='Realm'):
            self.check = check
@@ -83,7 +78,7 @@ Here's an implementation of an HTTP basic auth Pyramid authentication policy:
            return effective_principals
 
        def unauthenticated_userid(self, request):
-           creds = self._get_credentials(request)
+           creds = _get_basicauth_credentials(request)
            if creds is not None:
                return creds['login']
            return None
@@ -95,10 +90,7 @@ Here's an implementation of an HTTP basic auth Pyramid authentication policy:
            head = WWW_AUTHENTICATE.tuples('Basic realm="%s"' % self.realm)
            return head
 
-Use it something like:
-
-.. code-block:: python
-   :linenos:
+Use it something like::
 
    def mycheck(credentials, request):
        pwd_ok = my_password_check(credentials['login'], credentials['password'])

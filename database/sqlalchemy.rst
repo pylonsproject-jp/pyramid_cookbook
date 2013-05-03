@@ -1,7 +1,16 @@
 SQLAlchemy
 ==========
 
-This chapter contains information about using Pyramid with SQLAlchemy.
+Basic Usage
+-----------
+
+You can get basic application template to use with SQLAlchemy by using
+`alchemy` scaffold. Check the :ref:`narrative docs <creating_a_project>`
+for more information.
+
+Alternatively, you can try to follow
+:ref:`wiki tutorial <bfg_sql_wiki_tutorial>` or
+`blogr tutorial <http://pyramid-blogr.readthedocs.org>`_.
 
 Using a Non-Global Session
 --------------------------
@@ -9,56 +18,51 @@ Using a Non-Global Session
 It's sometimes advantageous to not use SQLAlchemy's thread-scoped sessions
 (such as when you need to use Pyramid in an asynchronous system).
 Thankfully, doing so is easy.  You can store a session factory in the
-application's ``settings`` object, and have the session factory called as a
+application's registry, and have the session factory called as a
 side effect of asking the request object for an attribute.  The session
 object will then have a lifetime matching that of the request.
 
+
+We are going to use ``Configurator.add_request_method`` to add SQLAlchemy
+session to request object and ``Request.add_finished_callback`` to close
+said session.
+
+.. note::
+
+   ``Configurator.add_request_method`` has been available since Pyramid 1.4.
+   You can use ``Configurator.set_request_property`` for Pyramid 1.3.
+
+
 We'll assume you have an ``.ini`` file with ``sqlalchemy.`` settings that
-specify your database properly.
-
-Create a file in your application's package directory named ``request.py``, and
-add a subclass of :class:`pyramid.request.Request` to it.
-
-.. code-block:: python
-   :linenos:
-
-   # request.py
-   from pyramid.request import Request
-   from pyramid.decorator import reify
-
-   class MyRequest(Request):
-       @reify
-       def db(self):
-           maker = self.registry.settings['db.sessionmaker']
-           return maker()
-
-The ``reify`` decorator used above works a bit like Python's ``property``
-decorator, but it is only called once per request: effectively the first time
-it's called, the result of ``maker()`` replaces the decorator as
-``request.db``.
-
-You can then use MyRequest as a request factory within your
-``__init__.py`` ``main`` function:
-
-.. code-block:: python
-   :linenos:
+specify your database properly::
 
     # __init__.py
 
+   from pyramid.config import Configurator
    from sqlalchemy import engine_from_config
    from sqlalchemy.orm import sessionmaker
 
-   from myapp.request import MyRequest
+   def db(request):
+       maker = request.registry.dbmaker
+       session = maker()
+
+       def cleanup(request):
+           session.close()
+       request.add_finished_callback(cleanup)
+
+       return session
+
 
    def main(global_config, **settings):
-       config = Configurator(settings=settings, request_factory=MyRequest)
+       config = Configurator(settings=settings)
        engine = engine_from_config(settings, prefix='sqlalchemy.')
-       maker = sessionmaker(bind=engine)
-       settings['db.sessionmaker'] = maker
+       config.registry.dbmaker = sessionmaker(bind=engine)
+       config.add_request_method(db, reify=True)
+
        # .. rest of configuration ...
 
-The db connection is now available in view code as ``request.db`` or
-``config.registry.settings['db.sessionmaker']()``
+The SQLAlchemy session is now available in view code as ``request.db`` or
+``config.registry.dbmaker()``.
 
 Importing all SQLAlchemy Models
 -------------------------------
@@ -95,7 +99,7 @@ DBSession and declarative base objects are created.  The
 ``models/__init__.py`` file and each submodule of ``models`` imports
 ``DBSession`` and ``declarative_base`` from it.  Whenever you create a ``.py``
 file in the ``models`` package, you're expected to add an import for it to
-``models/__init__.py``.  The the main program imports the ``models`` package,
+``models/__init__.py``.  The main program imports the ``models`` package,
 which has the side effect of ensuring that all model classes have been
 imported.  You can do this too, it works fine.
 
@@ -104,10 +108,7 @@ Using ``config.scan()`` allows you to avoid a circdep between
 ``models/__init__.py`` and ``models/themodel.py`` without creating a special
 ``models/meta.py``.
 
-For example, if you do this in ``myapp/models/__init__.py``:
-
-.. code-block:: python
-   :linenos:
+For example, if you do this in ``myapp/models/__init__.py``::
 
    from sqlalchemy.ext.declarative import declarative_base
    from sqlalchemy.orm import scoped_session, sessionmaker
@@ -120,10 +121,7 @@ For example, if you do this in ``myapp/models/__init__.py``:
        Base.metadata.bind = engine
        Base.metadata.create_all(engine)
 
-And this in ``myapp/models/mymodel.py``:
-
-.. code-block:: python
-   :linenos:
+And this in ``myapp/models/mymodel.py``::
 
    from myapp.models import Base
    from sqlalchemy import Column
@@ -140,10 +138,7 @@ And this in ``myapp/models/mymodel.py``:
            self.name = name
            self.value = value
 
-And this in ``myapp/__init__.py``:
-
-.. code-block:: python
-   :linenos:
+And this in ``myapp/__init__.py``::
 
    from sqlalchemy import engine_from_config
  

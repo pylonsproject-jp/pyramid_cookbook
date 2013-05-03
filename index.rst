@@ -1,7 +1,11 @@
+.. _pyramid-cookbook:
+
 Pyramid Cookbook
 ================
 
 The Pyramid Cookbook presents topical, practical usages of :mod:`Pyramid`.
+It supplements the `main documentation
+<http://docs.pylonsproject.org/projects/pyramid/en/latest/>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -9,7 +13,7 @@ The Pyramid Cookbook presents topical, practical usages of :mod:`Pyramid`.
    auth/index
    configuration/index
    database/index
-   debugging
+   debugging/index
    deployment/index
    forms/index
    logging/index
@@ -19,12 +23,11 @@ The Pyramid Cookbook presents topical, practical usages of :mod:`Pyramid`.
    static_assets/index
    templates/index
    testing/index
-   traversal_in_views
    views/index
    misc/index
    todo
 
-:ref:`Pyramid Glossary <glossary>`
+:ref:`Pyramid Glossary <pyramid:glossary>`
 
 Indices and tables
 ==================

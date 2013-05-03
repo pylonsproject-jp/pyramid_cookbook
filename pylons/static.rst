@@ -232,12 +232,10 @@ Alias のような他のパスディレクティブと RewriteRule を組み合�
     static_assets = "http://staticserver.com/"
 
 
-.. Main function:
+.. Main function::
 
-main 関数:
+main 関数::
 
-
-..  code-block:: python
 
     config.add_static_view(settings["static_assets"], "zzz:static")
 

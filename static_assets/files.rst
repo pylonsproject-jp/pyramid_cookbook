@@ -1,8 +1,3 @@
-Dealing With Files
-==================
-
-These cookbook recipes deal with serving files  and handling file uploads.
-
 Serving File Content Dynamically
 --------------------------------
 
@@ -13,20 +8,20 @@ code and served out (for example, a view callable might construct and return
 a PDF file or an image).
 
 By way of example, here's a Pyramid application which serves a single static
-file (a jpeg) when the URL ``/test.jpg`` is executed by assigning an open
-file object to ``response.app_iter``
-
-.. code-block:: python
+file (a jpeg) when the URL ``/test.jpg`` is executed::
 
     from pyramid.view import view_config
     from pyramid.config import Configurator
-    from pyramid.response import Response
+    from pyramid.response import FileResponse
     from paste.httpserver import serve
 
     @view_config(route_name='jpg')
     def test_page(request):
-        response = Response(content_type='image/jpeg')
-        response.app_iter = open('/home/chrism/groundhog1.jpg', 'rb')
+        response = FileResponse(
+            '/home/chrism/groundhog1.jpg', 
+            request=request,
+            content_type='image/jpeg'
+            )
         return response
 
     if __name__ == '__main__':
@@ -35,8 +30,13 @@ file object to ``response.app_iter``
         config.scan('__main__')
         serve(config.make_wsgi_app())
 
-Basically, assign a file object to ``response.app_iter`` and return the
-response.
+Basically, use a ``pyramid.response.FileResponse`` as the response object and
+return it.  Note that the ``request`` and ``content_type`` arguments are
+optional.  If ``request`` is not supplied, any ``wsgi.file_wrapper``
+optimization supplied by your WSGI server will not be used when serving the
+file.  If ``content_type`` is not supplied, it will be guessed using the
+``mimetypes`` module (which uses the file extension); if it cannot be guessed
+successfully, the ``application/octet-stream`` content type will be used.
 
 Serving a Single File from the Root
 -----------------------------------
@@ -112,11 +112,7 @@ To serve files within a directory located on your filesystem at
 ``/path/to/static/dir`` as the result of a "catchall" route hanging from the
 root that exists at the end of your routing table, create an instance of the
 :class:`pyramid.static.static_view` class inside a ``static.py`` file in your
-application root as below.
-
-.. ignore-next-block
-.. code-block:: python
-   :linenos:
+application root as below::
 
    from pyramid.static import static_view
    www = static_view('/path/to/static/dir', use_subpath=True)
@@ -128,10 +124,7 @@ application root as below.
 
 Subsequently, you may wire the files that are served by this view up to be
 accessible as ``/<filename>`` using a configuration method in your
-application's startup code.
-
-.. code-block:: python
-   :linenos:
+application's startup code::
 
    # .. every other add_route and/or add_handler declaration should come
    # before this one, as it will, by default, catch all requests
@@ -168,42 +161,31 @@ The second part is handling the file upload in your view callable (above,
 assumed to answer on ``/store_mp3_view``).  The uploaded file is added to the
 request object as a ``cgi.FieldStorage`` object accessible through the
 ``request.POST`` multidict.  The two properties we're interested in are the
-``file`` and ``filename`` and we'll use those to write the file to disk.
-
-.. code-block:: python
-   :linenos:
+``file`` and ``filename`` and we'll use those to write the file to disk::
 
     import os
+    import shutil
+
     from pyramid.response import Response
 
     def store_mp3_view(request):
         # ``filename`` contains the name of the file in string format.
         #
-        # WARNING: this example does not deal with the fact that IE sends an
-        # absolute file *path* as the filename.  This example is naive; it
-        # trusts user input.
-
+        # WARNING: Internet Explorer is known to send an absolute file
+        # *path* as the filename.  This example is naive; it trusts
+        # user input.
         filename = request.POST['mp3'].filename
 
         # ``input_file`` contains the actual file data which needs to be
         # stored somewhere.
-
         input_file = request.POST['mp3'].file
 
         # Using the filename like this without cleaning it is very
         # insecure so please keep that in mind when writing your own
         # file handling.
         file_path = os.path.join('/tmp', filename)
-        output_file = open(file_path, 'wb')
-
-        # Finally write the data to the output file
-        input_file.seek(0)
-        while 1:
-            data = input_file.read(2<<16)
-            if not data:
-                break
-            output_file.write(data)
-        output_file.close()
+        with open(file_path, 'wb') as output_file:
+            shutil.copyfileobj(input_file, output_file)
 
         return Response('OK')
 

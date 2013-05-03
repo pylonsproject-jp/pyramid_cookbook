@@ -32,7 +32,7 @@
     return exc.HTTPNotFound()           # Same thing
     raise exc.HTTPForbidden()
     raise exc.HTTPBadRequest()
-    raise exc.HTTPInernalServerError()
+    raise exc.HTTPInternalServerError()
     raise exc.HTTPFound(request.route_url("section1"))   # Redirect
 
 
@@ -71,7 +71,7 @@
 ..    and look for an "exception view" that matches it.  An exception view is one
 ..    whose *context* argument is the exception's class, an ancestor of it, or an
 ..    interface it implements.  All other view predicates must also match;
-..    e.g., if a 'route_name' argument is specified it must match the actual route
+..    e.g., if a 'route_name' argument is specified, it must match the actual route
 ..    name. (Thus an exception view is typically registered *without* a route
 ..    name.) The view is called with the exception object as its *context*, and
 ..    whatever response the view returns will be sent to the browser. You can thus

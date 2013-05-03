@@ -40,7 +40,7 @@ You will have probably have a line in your requirements file that has your proje
     -e git+git@xxxx:<git username>/xxxxx.git....#egg=project-name
 
 .. note::
-    You can only packages that can install from pypi. If you have any others that you checked out via git, or locally you will have to include these in your ``run`` file (see below). Never include these editable references when deploying to heroku.
+    You can only use packages that can be installed from pypi. If you have any others that you checked out via git, or locally you will have to include these in your ``run`` file (see below). Never include these editable references when deploying to heroku.
 
 
 ``Procfile``:
@@ -69,9 +69,8 @@ Create ``run`` with the following:
 
 ``runapp.py``:
 
-If using a version of Pyramid prior to 1.3 (e.g. < 1.3), use the following for runapp.py:
-
-.. code-block:: python
+If using a version of Pyramid prior to 1.3 (e.g. < 1.3),
+use the following for runapp.py::
     
     import os
 
@@ -84,9 +83,8 @@ If using a version of Pyramid prior to 1.3 (e.g. < 1.3), use the following for r
 
         httpserver.serve(app, host='0.0.0.0', port=port)
 
-Else if using a version greater or equal than 1.3 (e.g. >= 1.3), use the following for runapp.py
-
-.. code-block:: python
+Else if using a version greater or equal than 1.3 (e.g. >= 1.3),
+use the following for runapp.py::
 
     import os
 
